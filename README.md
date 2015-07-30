@@ -2,10 +2,7 @@
 Convert Stream into an Iterator yielding promises of values
 
 Sometimes, you want to treat streams in a sync "pull" fashion, but the stream values might not be ready yet.
-Promistreamus solves this by giving you an iterator function. Each call returns a thenable promise of a value.
-
-Once the value is available, promise is resolved. If stream ends, promise is resolved with the `undefined` value. On error, all pending promises are rejected with that error.
-
+Promistreamus solves this by giving you an iterator function. Calling it returns a thenable promise of a value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
 
 ## Using Promistreamus
 
@@ -13,14 +10,15 @@ Once the value is available, promise is resolved. If stream ends, promise is res
 var promistreamus = require("promistreamus");
 var iterator = promistreamus(stream); // Create an iterator from a stream
 
-// Set up the function to process values:
+// Stream item processing function
 var processor = function() {
+    // Get the next promise from the iterator and process the value once promise is resolved
     return iterator().then(function(value) {
         if (value === undefined) {
             // we are done, no more items in the stream
             return;
         }
-        // Process value
+        // Process the value
         ...
         return processor(); // Continue to the next item
     });
@@ -37,7 +35,7 @@ processor().then(function() {
 ## Processing multiple values at once
 The iterator function may be called more than once, without waiting for the first promise to be resolved.
 ``` js
-// Process 3 items at the same time (using bluebird library)
+// Process all items, 3 items at a time (example uses bluebird npm)
 var threads = [processor(), processor(), processor()];
 return BBPromise.all(threads).then(function() {
     // all items were successfully processed
