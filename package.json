@@ -1,0 +1,34 @@
+{
+  "name": "promistreamus",
+  "version": "0.0.1",
+  "description": "Convert Stream into an Iterator yielding value promises",
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nyurik/promistreamus.git"
+  },
+  "keywords": [
+    "promises",
+    "promise",
+    "stream",
+    "stream-promise",
+    "then",
+    "thenable",
+    "promises-a",
+    "promises-aplus",
+    "async",
+    "await",
+    "deferred",
+    "deferreds",
+    "future"
+  ],
+  "bugs": {
+    "url": "http://github.com/nyurik/promistreamus/issues"
+  },
+  "author": "Yuri Astrakhan <YuriAstrakhan@gmail.org>",
+  "license": "MIT",
+  "homepage": "https://github.com/nyurik/promistreamus",
+  "dependencies": {
+    "bluebird": "^2.0.0"
+  }
+}
