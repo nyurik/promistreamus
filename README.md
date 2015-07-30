@@ -26,8 +26,8 @@ var processor = function() {
         ...
         // Continue with the next item
         return processor();
-    }
-}
+    });
+};
 
 //
 // Now we can process either one item at a time, or multitask and process several items at the same time
