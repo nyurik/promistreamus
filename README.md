@@ -12,7 +12,7 @@ var iterator = promistreamus(stream); // Create an iterator from a stream
 
 // Stream item processing function
 var processor = function() {
-    // Get the next promise from the iterator and process the value once promise is resolved
+    // Get the promise of the next stream value from the iterator
     return iterator().then(function(value) {
         if (value === undefined) {
             // we are done, no more items in the stream
