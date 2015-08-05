@@ -49,3 +49,31 @@ Streaming can be stopped by calling cancel() function on the iterator. All pendi
 ``` js
 iterator.cancel();
 ```
+
+## Filtering and converting values of a promistreamus stream
+One may wish to map all values of a given promistreamus stream by using a conversion function, and/or to filter them out.
+``` js
+var iterator = promistreamus(stream); // Create an iterator from a stream
+
+var iterator2 = promistreamus.select(iterator, function (value) {
+     // process the value, and either return a new value, a promise of a new value, or undefined to skip it
+     return ...;
+});
+```
+
+## Joining multiple streams
+Given a promistreamus style stream of streams - an iterator function that returns promises of sub-iterators,
+one may wish to present the values from all sub-iterators together, just like the .NET's LINQ SelectMany() function.
+
+``` js
+var items = promistreamus(stream); // Create an iterator from a stream
+
+// Convert each value into a separate promistreamus iterator
+var itemsOfItems = promistreamus.select(iterator, function (value) {
+    return promistreamus(createStream(value));
+});
+
+// Flatten out all subitems
+var flattenedItems = promistreamus.flatten(iterator2);
+
+```

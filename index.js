@@ -86,3 +86,62 @@ module.exports = function(streamOrFunc, selectorFunc) {
 
     return iterator;
 };
+
+
+/**
+ * Converts and filters all values of an iterator using the converter function.
+ * If converter returns undefined, the value is skipped.
+ * @param iterator a promistreamus-style iterator function
+ * @param converter a function that takes a value and returns a value or a promise of a value.
+ *                  If the result resolves as undefined, it will be skipped.
+ * @returns {Function} a promistreamus-style iterator function
+ */
+module.exports.select = function(iterator, converter) {
+    var selector = function () {
+        return iterator().then(function (val) {
+            if (val === undefined) {
+                return val;
+            }
+            var newVal = converter(val);
+            if (newVal === undefined) {
+                return selector();
+            }
+            return newVal;
+        });
+    };
+    return selector;
+};
+
+/**
+ * Flatten multiple promistreamus iterators of items into one iterator of items
+ * @param iterator is a "stream of streams" function - each call to it must return a Promise of an iterator function.
+ * @returns {Function} a promistreamus-style iterator function
+ */
+module.exports.flatten = function(iterator) {
+    var subIterator = false;
+    var isDone = false;
+    var getNextValAsync = function() {
+        if (isDone)
+            return BBPromise.resolve(undefined);
+        if (!subIterator) {
+            subIterator = iterator()
+        }
+        var currentSubIterator = subIterator;
+        return currentSubIterator.then(function(iter) {
+            if (!iter) {
+                isDone = true;
+                return undefined;
+            }
+            return iter().then(function(val) {
+                if (val !== undefined) {
+                    return val;
+                }
+                if (currentSubIterator === subIterator) {
+                    subIterator = iterator();
+                }
+                return getNextValAsync();
+            });
+        });
+    };
+    return getNextValAsync;
+};
