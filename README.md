@@ -33,16 +33,19 @@ processor().then(function() {
 ```
 
 ## Delayed initialization
-In an edge case when iteration function is required before the stream is available, promistreamus can be initialized by calling init() function. This function is only available if the stream was not defined:
+In an edge case when iteration function is needed before the stream is available, promistreamus can be delay-created with an undefined call, and initialized later with `init(stream)` function.
 
 ``` js
 var promistreamus = require("promistreamus");
-var iterator = promistreamus(); // Create a non-initialized iterator which has .init(stream) method
+// Create a non-initialized iterator which has .init(stream) method
+var iterator = promistreamus();
 ...
-iterator.init(stream); // can be called even after the iterator function has been called 
+// init() can be called even after the iterator function has been called
+iterator.init(stream); 
 ```
 
 Note that if the filtering function is needed, it should still be passed as before:
+
 ``` js
 var iterator = promistreamus(undefined, function(row) {...});
 ```
@@ -50,6 +53,7 @@ var iterator = promistreamus(undefined, function(row) {...});
 
 ## Processing multiple values at once
 The iterator function may be called more than once, without waiting for the first promise to be resolved.
+
 ``` js
 // Process all items, 3 items at a time (example uses bluebird npm)
 var threads = [processor(), processor(), processor()];
@@ -62,12 +66,14 @@ return BBPromise.all(threads).then(function() {
 
 ## Cancellation
 Streaming can be stopped by calling cancel() function on the iterator. All pending promises will be rejected, and the stream will be paused.
+
 ``` js
 iterator.cancel();
 ```
 
 ## Filtering and converting values of a promistreamus stream
 One may wish to map all values of a given promistreamus stream by using a conversion function, and/or to filter them out.
+
 ``` js
 var iterator = promistreamus(stream); // Create an iterator from a stream
 
