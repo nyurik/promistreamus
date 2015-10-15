@@ -32,6 +32,22 @@ processor().then(function() {
 });
 ```
 
+## Delayed initialization
+In an edge case when iteration function is required before the stream is available, promistreamus can be initialized by calling init() function. This function is only available if the stream was not defined:
+
+``` js
+var promistreamus = require("promistreamus");
+var iterator = promistreamus(); // Create a non-initialized iterator which has .init(stream) method
+...
+iterator.init(stream); // can be called even after the iterator function has been called 
+```
+
+Note that if the filtering function is needed, it should still be passed as before:
+``` js
+var iterator = promistreamus(undefined, function(row) {...});
+```
+
+
 ## Processing multiple values at once
 The iterator function may be called more than once, without waiting for the first promise to be resolved.
 ``` js
