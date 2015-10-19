@@ -41,7 +41,7 @@ var promistreamus = require("promistreamus");
 var iterator = promistreamus();
 ...
 // init() can be called even after the iterator function has been called
-iterator.init(stream); 
+iterator.init(stream);
 ```
 
 Note that if the filtering function is needed, it should still be passed as before:
