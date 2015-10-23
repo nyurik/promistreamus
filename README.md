@@ -1,8 +1,16 @@
 # Promistreamus
 Convert Stream into an Iterator yielding promises of values
 
-Sometimes, you want to treat streams in a sync "pull" fashion, but the stream values might not be ready yet.
-Promistreamus solves this by giving you an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
+Allows `foreach` of promises for a stream:
+
+```
+// preudo-code
+foreach ( promise in promistreamus(stream) ) {
+    promise.then(function(value) { /* use the value */ });
+}
+```
+
+Promistreamus allows you to treat streams in a sync "pull" fashion, even if the stream values are not be ready yet. Promistreamus solves this by giving you an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
 
 ## Using Promistreamus
 
