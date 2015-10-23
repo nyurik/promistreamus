@@ -10,7 +10,7 @@ foreach ( promise in promistreamus(stream) ) {
 }
 ```
 
-Promistreamus allows you to treat streams in a sync "pull" fashion, even if the stream values are not be ready yet. Promistreamus solves this by giving you an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
+Promistreamus converts stream's values into promises. This allows you to treat streams in a sync "pull" fashion, even if the stream values are not ready yet. Wrapping a stream with Promistreamus provides an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
 
 ## Using Promistreamus
 
