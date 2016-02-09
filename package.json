@@ -1,6 +1,6 @@
 {
   "name": "promistreamus",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Convert Stream into an Iterator yielding value promises",
   "main": "lib/promistreamus.js",
   "repository": {
@@ -29,6 +29,6 @@
   "license": "MIT",
   "homepage": "https://github.com/nyurik/promistreamus",
   "dependencies": {
-    "bluebird": "^2.0.0"
+    "bluebird": "^3.1.1"
   }
 }
