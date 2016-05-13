@@ -1,4 +1,4 @@
-# Promistreamus
+# Promistreamus  [![Build Status](https://travis-ci.org/nyurik/promistreamus.svg?branch=master)](https://travis-ci.org/nyurik/promistreamus)
 Convert Stream into an Iterator yielding promises of values
 
 Allows `foreach` of promises for a stream:
