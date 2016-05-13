@@ -104,6 +104,6 @@ var itemsOfItems = promistreamus.select(iterator, function (value) {
 });
 
 // Flatten out all subitems
-var flattenedItems = promistreamus.flatten(iterator2);
+var flattenedItems = promistreamus.flatten(itemsOfItems);
 
 ```
