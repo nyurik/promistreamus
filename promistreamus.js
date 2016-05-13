@@ -5,19 +5,32 @@
  * Author: YuriAstrakhan@gmail.com
  */
 
-var BBPromise = require('bluebird');
+var Promise = require('bluebird');
+
+/**
+ * BlueBird has made Promise.pending() obsolete, but that makes working with streams
+ * very difficult, so introducing a simple workaround.
+ * @constructor
+ */
+function Deferred() {
+    var self = this;
+    self.promise = new Promise(function (resolve, reject) {
+        self.resolve = resolve;
+        self.reject = reject;
+    });
+}
 
 /**
  * Transform stream into an iterator that yields Promises.
- * @param streamOrFunc function that will return a stream object, or promise of a stream. If missing, the resulting
+ * @param {Stream|Function} streamOrFunc function that will return a stream object, or promise of a stream. If missing, the resulting
  *        object needs to be initialized with init() call
- * @param selectorFunc optional function that can convert data that came from the stream into the promise value.
+ * @param {Function} [selectorFunc] optional function that can convert data that came from the stream into the promise value.
  *        If undefined is returned, the value will not be yielded.
  * @returns {Function} Iterator function that will produce a Promise each time it is called.
           Streaming may be canceled by calling cancel() on the returned value.
  */
 module.exports = function(streamOrFunc, selectorFunc) {
-    var readablePromise = BBPromise.pending(),
+    var readablePromise = new Deferred(),
         initPromise,
         isDone = false,
         error, stream;
@@ -28,7 +41,7 @@ module.exports = function(streamOrFunc, selectorFunc) {
                 // Notify waiting promises that data is available,
                 // and create a new one to wait for the next chunk of data
                 readablePromise.resolve(true);
-                readablePromise = BBPromise.pending();
+                readablePromise = new Deferred();
             })
             .on('end', function () {
                 isDone = true;
@@ -43,14 +56,14 @@ module.exports = function(streamOrFunc, selectorFunc) {
 
     var p;
     if (!streamOrFunc) {
-        initPromise = BBPromise.pending();
+        initPromise = new Deferred();
         p = initPromise.promise.then(function(streamOrFunc) {
             return typeof streamOrFunc === "function" ? streamOrFunc() : streamOrFunc;
         }).then(prepareStream);
     } else if (typeof streamOrFunc === "function") {
-        p = BBPromise.try(streamOrFunc).then(prepareStream);
+        p = Promise.try(streamOrFunc).then(prepareStream);
     } else {
-        p = BBPromise.try(function () {
+        p = Promise.try(function () {
             return prepareStream(streamOrFunc)
         });
     }
@@ -67,7 +80,7 @@ module.exports = function(streamOrFunc, selectorFunc) {
             return undefined;
         }
         var value;
-        while ((value = stream.read())) {
+        while ((value = stream.read()) !== null) {
             res = selectorFunc ? selectorFunc(value) : value;
             if (res === undefined)
                 continue;
@@ -78,7 +91,7 @@ module.exports = function(streamOrFunc, selectorFunc) {
 
     var iterator = function () {
         var res = !initPromise
-            ? BBPromise.try(readStream)
+            ? Promise.try(readStream)
             : initPromise.promise.then(readStream);
         return res
             .then(function (value) {
@@ -98,13 +111,13 @@ module.exports = function(streamOrFunc, selectorFunc) {
 
     iterator.cancel = function() {
         if (initPromise) {
-            initPromise.cancel();
+            initPromise.promise.cancel();
         } else {
             stream.pause();
         }
         if (!error)
-            error = new BBPromise.CancellationError();
-        readablePromise.cancel();
+            error = new Promise.CancellationError();
+        readablePromise.promise.cancel();
     };
 
     if (initPromise) {
@@ -122,8 +135,9 @@ module.exports = function(streamOrFunc, selectorFunc) {
 /**
  * Converts and filters all values of an iterator using the converter function.
  * If converter returns undefined, the value is skipped.
- * @param iterator a promistreamus-style iterator function
- * @param converter a function that takes a value and returns a value or a promise of a value.
+ * NOTE: This function might not work as expected if the next value is requested before the previous is resolved.
+ * @param {Function} iterator a promistreamus-style iterator function
+ * @param {Function} converter a function that takes a value and returns a value or a promise of a value.
  *                  If the result resolves as undefined, it will be skipped.
  * @returns {Function} a promistreamus-style iterator function
  */
@@ -145,7 +159,7 @@ module.exports.select = function(iterator, converter) {
 
 /**
  * Flatten multiple promistreamus iterators of items into one iterator of items
- * @param iterator is a "stream of streams" function - each call to it must return a Promise of an iterator function.
+ * @param {Function} iterator is a "stream of streams" function - each call to it must return a Promise of an iterator function.
  * @returns {Function} a promistreamus-style iterator function
  */
 module.exports.flatten = function(iterator) {
@@ -153,9 +167,9 @@ module.exports.flatten = function(iterator) {
     var isDone = false;
     var getNextValAsync = function() {
         if (isDone)
-            return BBPromise.resolve(undefined);
+            return Promise.resolve(undefined);
         if (!subIterator) {
-            subIterator = iterator()
+            subIterator = Promise.try(iterator);
         }
         var currentSubIterator = subIterator;
         return currentSubIterator.then(function(iter) {
@@ -168,7 +182,7 @@ module.exports.flatten = function(iterator) {
                     return val;
                 }
                 if (currentSubIterator === subIterator) {
-                    subIterator = iterator();
+                    subIterator = Promise.try(iterator);
                 }
                 return getNextValAsync();
             });
