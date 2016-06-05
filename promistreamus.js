@@ -142,19 +142,22 @@ module.exports = function(streamOrFunc, selectorFunc) {
  * @returns {Function} a promistreamus-style iterator function
  */
 module.exports.select = function(iterator, converter) {
-    var selector = function () {
+    var getNextValAsync = function () {
         return iterator().then(function (val) {
             if (val === undefined) {
                 return val;
             }
             var newVal = converter(val);
             if (newVal === undefined) {
-                return selector();
+                return getNextValAsync();
             }
             return newVal;
         });
     };
-    return selector;
+    getNextValAsync.cancel = function() {
+        if (iterator.cancel) iterator.cancel();
+    };
+    return getNextValAsync;
 };
 
 /**
@@ -187,6 +190,10 @@ module.exports.flatten = function(iterator) {
                 return getNextValAsync();
             });
         });
+    };
+    getNextValAsync.cancel = function() {
+        if (subIterator && subIterator.cancel) subIterator.cancel();
+        if (iterator.cancel) iterator.cancel();
     };
     return getNextValAsync;
 };
