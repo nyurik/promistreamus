@@ -110,6 +110,7 @@ module.exports = function(streamOrFunc, selectorFunc) {
     };
 
     iterator.cancel = function() {
+        isDone = true;
         if (initPromise) {
             initPromise.promise.cancel();
         } else {
@@ -142,9 +143,13 @@ module.exports = function(streamOrFunc, selectorFunc) {
  * @returns {Function} a promistreamus-style iterator function
  */
 module.exports.select = function(iterator, converter) {
+    var isDone = false;
     var getNextValAsync = function () {
         return iterator().then(function (val) {
-            if (val === undefined) {
+            if (isDone) {
+                return undefined;
+            } else if (val === undefined) {
+                isDone = true;
                 return val;
             }
             var newVal = converter(val);
@@ -155,6 +160,7 @@ module.exports.select = function(iterator, converter) {
         });
     };
     getNextValAsync.cancel = function() {
+        isDone = true;
         if (iterator.cancel) iterator.cancel();
     };
     return getNextValAsync;
@@ -169,14 +175,14 @@ module.exports.flatten = function(iterator) {
     var subIterator = false;
     var isDone = false;
     var getNextValAsync = function() {
-        if (isDone)
+        if (isDone) {
             return Promise.resolve(undefined);
-        if (!subIterator) {
+        } else if (!subIterator) {
             subIterator = Promise.try(iterator);
         }
         var currentSubIterator = subIterator;
         return currentSubIterator.then(function(iter) {
-            if (!iter) {
+            if (isDone || !iter) {
                 isDone = true;
                 return undefined;
             }
@@ -192,6 +198,7 @@ module.exports.flatten = function(iterator) {
         });
     };
     getNextValAsync.cancel = function() {
+        isDone = true;
         if (subIterator && subIterator.cancel) subIterator.cancel();
         if (iterator.cancel) iterator.cancel();
     };
