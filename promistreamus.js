@@ -5,7 +5,8 @@
  * Author: YuriAstrakhan@gmail.com
  */
 
-var Promise = require('bluebird');
+var Promise = require('bluebird'),
+    undefinedPromise = Promise.resolve(undefined);
 
 /**
  * BlueBird has made Promise.pending() obsolete, but that makes working with streams
@@ -27,7 +28,7 @@ function Deferred() {
  * @param {Function} [selectorFunc] optional function that can convert data that came from the stream into the promise value.
  *        If undefined is returned, the value will not be yielded.
  * @returns {Function} Iterator function that will produce a Promise each time it is called.
-          Streaming may be canceled by calling cancel() on the returned value.
+          Streaming may be stoped by calling stop() on the returned value.
  */
 module.exports = function(streamOrFunc, selectorFunc) {
     var readablePromise = new Deferred(),
@@ -74,7 +75,7 @@ module.exports = function(streamOrFunc, selectorFunc) {
 
     var readStream = function () {
         if (error) {
-            // TODO: decide if we should exhaust the stream before reporting the error or error out right away
+            // Error out right away, without exhausting the stream
             throw error;
         } else if (!stream) {
             return undefined;
@@ -90,6 +91,9 @@ module.exports = function(streamOrFunc, selectorFunc) {
     };
 
     var iterator = function () {
+        if (isDone) {
+            return undefinedPromise;
+        }
         var res = !initPromise
             ? Promise.try(readStream)
             : initPromise.promise.then(readStream);
@@ -107,18 +111,6 @@ module.exports = function(streamOrFunc, selectorFunc) {
                 // Note: there is a minor inefficiency here - readStream is called twice in a value, but its a rare case
                 return iterator();
             });
-    };
-
-    iterator.cancel = function() {
-        isDone = true;
-        if (initPromise) {
-            initPromise.promise.cancel();
-        } else {
-            stream.pause();
-        }
-        if (!error)
-            error = new Promise.CancellationError();
-        readablePromise.promise.cancel();
     };
 
     if (initPromise) {
@@ -143,14 +135,12 @@ module.exports = function(streamOrFunc, selectorFunc) {
  * @returns {Function} a promistreamus-style iterator function
  */
 module.exports.select = function(iterator, converter) {
-    var isDone = false;
+    var doneValue = false;
     var getNextValAsync = function () {
-        return iterator().then(function (val) {
-            if (isDone) {
+        return doneValue || iterator().then(function (val) {
+            if (val === undefined) {
+                doneValue = undefinedPromise;
                 return undefined;
-            } else if (val === undefined) {
-                isDone = true;
-                return val;
             }
             var newVal = converter(val);
             if (newVal === undefined) {
@@ -158,10 +148,6 @@ module.exports.select = function(iterator, converter) {
             }
             return newVal;
         });
-    };
-    getNextValAsync.cancel = function() {
-        isDone = true;
-        if (iterator.cancel) iterator.cancel();
     };
     return getNextValAsync;
 };
@@ -172,18 +158,15 @@ module.exports.select = function(iterator, converter) {
  * @returns {Function} a promistreamus-style iterator function
  */
 module.exports.flatten = function(iterator) {
-    var subIterator = false;
-    var isDone = false;
+    var subIterator, doneValue;
     var getNextValAsync = function() {
-        if (isDone) {
-            return Promise.resolve(undefined);
-        } else if (!subIterator) {
+        if (!subIterator) {
             subIterator = Promise.try(iterator);
         }
         var currentSubIterator = subIterator;
-        return currentSubIterator.then(function(iter) {
-            if (isDone || !iter) {
-                isDone = true;
+        return doneValue || currentSubIterator.then(function(iter) {
+            if (!iter) {
+                doneValue = undefinedPromise;
                 return undefined;
             }
             return iter().then(function(val) {
@@ -196,11 +179,6 @@ module.exports.flatten = function(iterator) {
                 return getNextValAsync();
             });
         });
-    };
-    getNextValAsync.cancel = function() {
-        isDone = true;
-        if (subIterator && subIterator.cancel) subIterator.cancel();
-        if (iterator.cancel) iterator.cancel();
     };
     return getNextValAsync;
 };

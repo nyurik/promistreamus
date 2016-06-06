@@ -1,6 +1,6 @@
 {
   "name": "promistreamus",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Convert Stream into an Iterator yielding value promises",
   "main": "promistreamus.js",
   "repository": {

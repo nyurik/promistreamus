@@ -96,56 +96,61 @@ describe('Tests', function() {
     it('iteration', function() {
 
         function test(values) {
-            assertInOrder(values, makeIter(values, false));
-            assertInOrder(values, makeIter(values, 0));
-            assertInOrder(values, makeIter(values, true));
-            assertParallel(values, makeIter(values, false));
-            assertParallel(values, makeIter(values, 0));
-            assertParallel(values, makeIter(values, true));
+            return Promise.resolve(true)
+                .then(function () {return assertInOrder(values, makeIter(values, false))})
+                .then(function () {return assertInOrder(values, makeIter(values, 0))})
+                .then(function () {return assertInOrder(values, makeIter(values, true))})
+                .then(function () {return assertParallel(values, makeIter(values, false))})
+                .then(function () {return assertParallel(values, makeIter(values, 0))})
+                .then(function () {return assertParallel(values, makeIter(values, true))});
         }
 
-        test([]);
-        test(['']);
-        test([{}]);
-        test([0]);
-        test([{a:0}]);
-        test([1,2,3]);
-        test(_.range(0, 1000));
+        return Promise.resolve(true)
+            .then(function () {return test([])})
+            .then(function () {return test([''])})
+            .then(function () {return test([{}])})
+            .then(function () {return test([0])})
+            .then(function () {return test([{a:0}])})
+            .then(function () {return test([1,2,3])})
+            .then(function () {return test(_.range(0, 1000))});
     });
-
 
     it('flatten', function() {
         function test(expValues, values) {
-            assertInOrder(expValues, flatIter(values, false));
-            assertInOrder(expValues, flatIter(values, 0));
-            assertInOrder(expValues, flatIter(values, true));
-            assertParallel(expValues, flatIter(values, false));
-            assertParallel(expValues, flatIter(values, 0));
-            assertParallel(expValues, flatIter(values, true));
+            return Promise.resolve(true)
+                .then(function () {return assertInOrder(expValues, flatIter(values, false))})
+                .then(function () {return assertInOrder(expValues, flatIter(values, 0))})
+                .then(function () {return assertInOrder(expValues, flatIter(values, true))})
+                .then(function () {return assertParallel(expValues, flatIter(values, false))})
+                .then(function () {return assertParallel(expValues, flatIter(values, 0))})
+                .then(function () {return assertParallel(expValues, flatIter(values, true))});
         }
 
-        test([1,2,3], [[1,2,3]]);
-        test([1,2,3], [[1],[2],[3]]);
-        test([1,2,3], [[],[1,2],[],[],[3]]);
+        return Promise.resolve(true)
+            .then(function () {return test([1,2,3], [[1,2,3]])})
+            .then(function () {return test([1,2,3], [[1],[2],[3]])})
+            .then(function () {return test([1,2,3], [[],[1,2],[],[],[3]])});
     });
 
     it('select', function() {
         function test(expValues, values, filter) {
-            assertInOrder(expValues, promistreamus.select(makeIter(values, false), filter));
-            assertInOrder(expValues, promistreamus.select(makeIter(values, 0), filter));
-            assertInOrder(expValues, promistreamus.select(makeIter(values, true), filter));
+            return Promise.resolve(true)
+                .then(function () {return assertInOrder(expValues, promistreamus.select(makeIter(values, false), filter))})
+                .then(function () {return assertInOrder(expValues, promistreamus.select(makeIter(values, 0), filter))})
+                .then(function () {return assertInOrder(expValues, promistreamus.select(makeIter(values, true), filter))});
         }
 
         var filter = function (val) {
             return val <= 0 ? undefined : val * 2;
         };
 
-        test([], [], filter);
-        test([], [-1], filter);
-        test([], [0,-1], filter);
-        test([2], [1], filter);
-        test([2,4], [1,2], filter);
-        test([2], [0,1], filter);
-        test([2,4,6], [0,1,-1,2,3], filter);
+        return Promise.resolve(true)
+            .then(function () {return test([], [], filter)})
+            .then(function () {return test([], [-1], filter)})
+            .then(function () {return test([], [0,-1], filter)})
+            .then(function () {return test([2], [1], filter)})
+            .then(function () {return test([2,4], [1,2], filter)})
+            .then(function () {return test([2], [0,1], filter)})
+            .then(function () {return test([2,4,6], [0,1,-1,2,3], filter)});
     });
 });
