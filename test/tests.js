@@ -112,7 +112,7 @@ describe('Tests', function() {
             .then(function () {return test([0])})
             .then(function () {return test([{a:0}])})
             .then(function () {return test([1,2,3])})
-            .then(function () {return test(_.range(0, 1000))});
+            .then(function () {return test(_.range(0, 100))});
     });
 
     it('flatten', function() {
