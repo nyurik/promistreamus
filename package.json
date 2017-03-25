@@ -3,13 +3,11 @@
   "version": "0.1.11",
   "description": "Convert Stream into an Iterator yielding value promises",
   "main": "promistreamus.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/nyurik/promistreamus.git"
-  },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "preversion": "npm test"
   },
+  "repository": "nyurik/promistreamus",
   "keywords": [
     "promises",
     "promise",
@@ -25,8 +23,9 @@
     "deferreds",
     "future"
   ],
-  "bugs": {
-    "url": "http://github.com/nyurik/promistreamus/issues"
+  "bugs": "http://github.com/nyurik/promistreamus/issues",
+  "publishConfig": {
+    "access": "public"
   },
   "author": "Yuri Astrakhan <YuriAstrakhan@gmail.org>",
   "license": "MIT",
