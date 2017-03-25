@@ -65,7 +65,7 @@ The iterator function may be called more than once, without waiting for the firs
 ``` js
 // Process all items, 3 items at a time (example uses bluebird npm)
 var threads = [processor(), processor(), processor()];
-return BBPromise.all(threads).then(function() {
+return Promise.all(threads).then(function() {
     // all items were successfully processed
 }, function(err) {
     // processing failed
