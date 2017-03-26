@@ -31,10 +31,10 @@
   "license": "MIT",
   "homepage": "https://github.com/nyurik/promistreamus",
   "dependencies": {
-    "bluebird": "^3.3.5"
+    "bluebird": "^3.5.0"
   },
   "devDependencies": {
     "underscore": "^1.8.3",
-    "mocha": "^2.4.5"
+    "mocha": "^3.2.0"
   }
 }
