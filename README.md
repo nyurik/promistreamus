@@ -1,16 +1,13 @@
 # Promistreamus  [![Build Status](https://travis-ci.org/nyurik/promistreamus.svg?branch=master)](https://travis-ci.org/nyurik/promistreamus)
-Convert Stream into an Iterator yielding promises of values
 
-Allows `foreach` of promises for a stream:
+Promistreamus converts stream's values into promises. This allows you to treat streams in a sync "pull" fashion, even if the stream values are not yet ready. Wrapping a stream with Promistreamus provides an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
 
 ```
 // preudo-code
-foreach ( promise in promistreamus(stream) ) {
-    promise.then(function(value) { /* use the value */ });
+for( const promise of promistreamus(stream) ) {
+    promise.then(value => { /* use the value */ });
 }
 ```
-
-Promistreamus converts stream's values into promises. This allows you to treat streams in a sync "pull" fashion, even if the stream values are not ready yet. Wrapping a stream with Promistreamus provides an iterator function. Calling it returns a thenable promise of a value. Once available, the promise is resolved with the value. When the stream ends, all pending promises are resolved with the `undefined` value. On error, all pending promises are rejected with that error.
 
 ## Using Promistreamus
 
@@ -21,7 +18,7 @@ var iterator = promistreamus(stream); // Create an iterator from a stream
 // Stream item processing function
 var processor = function() {
     // Get the promise of the next stream value from the iterator
-    return iterator().then(function(value) {
+    return iterator().then((value) => {
         if (value === undefined) {
             // we are done, no more items in the stream
             return;
@@ -33,9 +30,9 @@ var processor = function() {
 };
 
 // Process stream one item at a time
-processor().then(function() {
+processor().then(() => {
     // all items were successfully processed
-}, function(err) {
+}, (err) => {
     // processing failed
 });
 ```
@@ -55,7 +52,7 @@ iterator.init(stream);
 Note that if the filtering function is needed, it should still be passed as before:
 
 ``` js
-var iterator = promistreamus(undefined, function(row) {...});
+var iterator = promistreamus(undefined, (row) => {...});
 ```
 
 
@@ -65,9 +62,9 @@ The iterator function may be called more than once, without waiting for the firs
 ``` js
 // Process all items, 3 items at a time (example uses bluebird npm)
 var threads = [processor(), processor(), processor()];
-return Promise.all(threads).then(function() {
+return Promise.all(threads).then(() => {
     // all items were successfully processed
-}, function(err) {
+}, (err) => {
     // processing failed
 });
 ```
@@ -85,7 +82,7 @@ One may wish to map all values of a given promistreamus stream by using a conver
 ``` js
 var iterator = promistreamus(stream); // Create an iterator from a stream
 
-var iterator2 = promistreamus.select(iterator, function (value) {
+var iterator2 = promistreamus.select(iterator, (value) => {
      // process the value, and either return a new value, a promise of a new value, or undefined to skip it
      return ...;
 });
@@ -99,11 +96,10 @@ one may wish to present the values from all sub-iterators together, just like th
 var items = promistreamus(stream); // Create an iterator from a stream
 
 // Convert each value into a separate promistreamus iterator
-var itemsOfItems = promistreamus.select(iterator, function (value) {
+var itemsOfItems = promistreamus.select(iterator, (value) => {
     return promistreamus(createStream(value));
 });
 
 // Flatten out all subitems
 var flattenedItems = promistreamus.flatten(itemsOfItems);
-
 ```
